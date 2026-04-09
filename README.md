@@ -5,7 +5,7 @@
 # 👥 팀 소개
 ## 1) 팀명
 ### ㄱㅅ(감사)
-<img src="assets/images/3team-image.png" width="600" alt="팀 이미지">
+<img src="assets/images/3team-image.png" width="450" alt="팀 이미지">
 
 ## 2) 팀원 소개
 <img src="assets/images/3team-member.png" width="600" alt="팀원 사진">
