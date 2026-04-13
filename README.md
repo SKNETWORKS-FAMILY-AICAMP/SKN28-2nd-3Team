@@ -25,7 +25,7 @@
 | 입력 변수 수 | 75개 (전처리 후 학습 테이블 기준) |
 | Churn 비율 | 22.0% (불균형 분류 문제) |
 | 최적 운영 기준 | threshold 0.45 (logistic_regression · F1 0.433) |
-| 배포 | [🔗 Streamlit 대시보드](https://ravenstack-churn-project.streamlit.app) |
+| 배포 | [🔗 Streamlit 대시보드](https://skn28-2nd-3teamgit.streamlit.app/) |
 
 ### 프로젝트 목표
 - 비즈니스 이해를 통한 머신러닝 모델 활용 계획 수립
