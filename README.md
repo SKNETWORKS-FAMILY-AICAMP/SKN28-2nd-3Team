@@ -22,7 +22,7 @@
 | 주제 | 설명 가능한 SaaS 고객 이탈 예측 및 고객 유지 전략 분석 |
 | 데이터셋 | RavenStack Synthetic SaaS Dataset |
 | 분석 단위 | account 기준 (500개) |
-| 입력 변수 수 | 74개 (전처리 후 학습 테이블 기준) |
+| 입력 변수 수 | 75개 (전처리 후 학습 테이블 기준) |
 | Churn 비율 | 22.0% (불균형 분류 문제) |
 | 최적 운영 기준 | threshold 0.45 (logistic_regression · F1 0.433) |
 | 배포 | [🔗 Streamlit 대시보드](https://ravenstack-churn-project.streamlit.app) |
