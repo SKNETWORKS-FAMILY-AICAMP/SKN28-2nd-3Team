@@ -264,36 +264,115 @@ streamlit run src/app/streamlit_app.py
 
 ---
 
-## 디렉토리 구조
+## 최종 프로젝트 구조
 
-```
-project-root/
+```text
+SKN28-2nd-3Team/
+├── README.md                        # 프로젝트 소개 및 실행 안내
+├── requirements.txt                 # 실행에 필요한 패키지 목록
 │
-├── README.md                  # 프로젝트 전체 설명
-├── requirements.txt           # 실행에 필요한 라이브러리 목록
-├── .gitignore
+├── docs/                            # 프로젝트 문서 모음
+│   ├── data_dictionary.md           # 변수/컬럼 설명 문서
+│   ├── streamlit_guide.md           # Streamlit 구성 및 사용 가이드
+│   ├── project_description.md       # 프로젝트 개요 문서
+│   ├── modeling_strategy.md         # 모델링 전략 정리 문서
+│   └── 발표정리.md                    # 발표용 정리 문서
 │
 ├── data/
-│   ├── raw/                   # 원본 데이터 (수정 금지)
-│   └── processed/             # 전처리 완료 데이터 (모델 입력용)
+│   ├── raw/                         # 원천 데이터 저장 폴더
+│   ├── interim/                     # 전처리 중간 산출물 저장 폴더
+│   └── processed/                   # 분석·모델링용 최종 데이터 저장 폴더
+│
+├── assets/
+│   └── images/                      # 프로젝트 이미지 리소스 폴더
+│
+├── outputs/
+│   ├── eda/
+│   │   ├── plots/                   # EDA 시각화 결과 저장 폴더
+│   │   └── tables/                  # EDA 표 결과 저장 폴더
+│   ├── models/                      # 학습 모델 및 성능 결과 저장 폴더
+│   ├── streamlit/                   # 대시보드 출력용 결과 저장 폴더
+│   └── xai/                         # SHAP/XAI 결과 저장 폴더
 │
 ├── notebooks/
-│   ├── 01_eda.ipynb           # 데이터 탐색 및 시각화
-│   ├── 02_preprocessing.ipynb # 전처리 과정 실험 및 확인
-│   └── 03_modeling.ipynb      # 모델 학습 및 성능 비교
+│   ├── 01_data_check.ipynb          # 원천 데이터 점검
+│   ├── 02_feature_engineering.ipynb # 피처 엔지니어링
+│   ├── 03_eda.ipynb                 # 탐색적 데이터 분석
+│   ├── 04_ml_baseline.ipynb         # 머신러닝 베이스라인 실험
+│   ├── 05_xai_analysis.ipynb        # XAI 분석
+│   └── 06_dl_experiment.ipynb       # 딥러닝 실험
 │
-├── src/
-│   ├── preprocessing.py       # 전처리 로직 함수화
-│   ├── train.py               # 모델 학습 코드
-│   ├── predict.py             # 학습된 모델로 예측 수행
-│   └── app/
-│       └── streamlit_app.py   # Streamlit 대시보드
-│
-├── models/                    # 학습 완료된 모델 파일 (.pkl)
-│
-└── reports/
-    ├── eda_report.md          # 데이터 분석 결과 정리
-    └── model_report.md        # 모델 학습 결과 정리
+└── src/                             # 실제 실행 코드 패키지
+    ├── __init__.py                  # src 패키지 초기화
+    │
+    ├── app/                         # Streamlit 앱 코드
+    │   ├── __init__.py              # app 패키지 초기화
+    │   ├── streamlit_app.py         # Streamlit 메인 실행 파일
+    │   ├── sections/                # 페이지별 화면 구성 모듈
+    │   │   ├── overview_section.py  # 프로젝트 개요 페이지
+    │   │   ├── eda_section.py       # EDA 결과 페이지
+    │   │   ├── model_section.py     # 모델 성능 페이지
+    │   │   ├── prediction_section.py# 개별 예측 페이지
+    │   │   └── xai_section.py       # XAI 설명 페이지
+    │   └── utils/                   # 앱 내부 유틸 함수
+    │       ├── formatters.py        # 표시 형식 변환 함수
+    │       └── load_data.py         # 앱 데이터 로드 함수
+    │
+    ├── config/                      # 경로 및 설정 관리
+    │   ├── __init__.py              # config 패키지 초기화
+    │   ├── paths.py                 # 주요 경로 정의
+    │   └── settings.py              # 공통 설정값 정의
+    │
+    ├── data/                        # 데이터 점검 및 전처리 코드
+    │   ├── data_check.py            # 원천 데이터 점검
+    │   ├── preprocess_subscriptions.py # 구독 데이터 전처리
+    │   └── make_train_table.py      # 학습용 통합 테이블 생성
+    │
+    ├── eda/                         # 탐색적 데이터 분석 코드
+    │   ├── __init__.py              # eda 패키지 초기화
+    │   ├── eda_main.py              # EDA 실행 메인 스크립트
+    │   ├── eda_numeric.py           # 수치형 변수 분석
+    │   ├── eda_categoricals.py      # 범주형 변수 분석
+    │   ├── eda_missingness.py       # 결측 패턴 분석
+    │   ├── eda_by_churn.py          # churn 기준 비교 분석
+    │   └── eda_visualization.py     # EDA 시각화 함수
+    │
+    ├── features/                    # 피처 생성 및 가공 코드
+    │   ├── __init__.py              # features 패키지 초기화
+    │   ├── build_features.py        # 전체 피처 생성 파이프라인
+    │   ├── encode_categoricals.py   # 범주형 인코딩 처리
+    │   ├── missing_flags.py         # 결측 여부 플래그 생성
+    │   ├── subscription_change_features.py # 구독 변화 기반 피처 생성
+    │   └── make_dl_dataset.py       # 딥러닝 입력 데이터셋 생성
+    │
+    ├── models/                      # 모델 학습·평가·예측 코드
+    │   ├── __init__.py              # models 패키지 초기화
+    │   ├── train_baseline.py        # 베이스라인 모델 학습
+    │   ├── train_tree_model.py      # 트리 계열 모델 학습
+    │   ├── train_dl_model.py        # 딥러닝 모델 학습
+    │   ├── evaluate.py              # 모델 성능 평가
+    │   ├── compare_models.py        # 모델 성능 비교
+    │   ├── threshold_tuning.py      # threshold 튜닝
+    │   ├── tune_thresholds.py       # threshold 후보 비교
+    │   ├── predict.py               # 일반 모델 예측
+    │   ├── predict_dl_model.py      # 딥러닝 모델 예측
+    │   └── save_model.py            # 모델 저장 처리
+    │
+    ├── utils/                       # 공통 유틸 함수
+    │   ├── __init__.py              # utils 패키지 초기화
+    │   ├── io.py                    # 입출력 유틸
+    │   ├── logger.py                # 로그 출력 유틸
+    │   ├── plot_utils.py            # 시각화 보조 함수
+    │   └── helpers.py               # 공통 보조 함수
+    │
+    ├── xai/                         # 설명가능 AI 분석 코드
+    │   ├── __init__.py              # xai 패키지 초기화
+    │   ├── shap_analysis.py         # SHAP 분석 메인 스크립트
+    │   ├── global_explanations.py   # 전역 설명 생성
+    │   ├── local_explanations.py    # 개별 설명 생성
+    │   └── reason_mapping.py        # 설명 결과 해석 문장 매핑
+    │
+    └── processed/                   # src 내부 임시 산출물 폴더
 ```
 
 ---
