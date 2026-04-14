@@ -447,7 +447,7 @@ SKN28-2nd-3Team/
 이 프로젝트는 단순한 churn classification 실습이 아니다.
 
 - 다중 테이블 SaaS 데이터를 **account 단위로 통합**했고
-- 이탈 이후 생성된 정보를 학습에서 제외하여 **데이터 누수(leakage)** 를 통제했으며
+- 이탈 이후 생성된 정보를 학습에서 제외하여 **데이터 누수(data leakage)** 를 통제했으며
 - 고정 threshold 0.5에 머무르지 않고 **threshold tuning**을 통해 운영 기준을 재설정했고
 - SHAP을 활용해 모델 판단 근거를 설명 가능한 형태로 해석했으며
 - 최종적으로 예측 결과를 **고객 유지 전략(retention strategy)** 으로 연결했다
