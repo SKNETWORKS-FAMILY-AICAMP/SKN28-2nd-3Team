@@ -11,29 +11,28 @@ from src.app.utils.load_data import (
 )
 
 
-def _mini_card(label: str, value: str, sub: str) -> None:
+def _stat(label: str, value: str, sub: str = "") -> None:
     st.markdown(
-        dedent(f"""
-        <div class="mini-card">
-            <div class="mini-label">{label}</div>
-            <div class="mini-value">{value}</div>
-            <div class="mini-sub">{sub}</div>
+        f"""
+        <div class="stat-card">
+            <div class="stat-label">{label}</div>
+            <div class="stat-value">{value}</div>
+            {"" if not sub else f'<div class="stat-sub">{sub}</div>'}
         </div>
-        """).strip(),
+        """,
         unsafe_allow_html=True,
     )
 
 
-def _card(title: str, body_html: str) -> None:
-    body_html = dedent(body_html).strip()
-
+def _card(title: str, body: str, gray: bool = False) -> None:
+    cls = "card-gray" if gray else "card"
     st.markdown(
-        dedent(f"""
-        <div class="section-card equal-card">
-            <h4 style="margin-top:0; margin-bottom:0.9rem;">{title}</h4>
-            {body_html}
+        f"""
+        <div class="{cls}">
+            <h4>{title}</h4>
+            <div style="color:#334155; font-size:0.93rem; line-height:1.75;">{body}</div>
         </div>
-        """).strip(),
+        """,
         unsafe_allow_html=True,
     )
 
@@ -44,90 +43,94 @@ def render() -> None:
     xai_df = load_xai_summary()
 
     churn_rate = df["churn_flag"].mean() * 100 if not df.empty else 0.0
-
-    best_model = "-"
-    best_f1 = "-"
-    best_threshold = "-"
+    best_model, best_f1, best_threshold = "-", "-", "-"
 
     if not tuned_df.empty:
-        best_row = tuned_df.sort_values("f1", ascending=False).iloc[0]
-        best_model = str(best_row["model"])
-        best_f1 = f"{best_row['f1']:.3f}"
-        best_threshold = f"{best_row['threshold']:.2f}"
+        row = tuned_df.sort_values("f1", ascending=False).iloc[0]
+        best_model = str(row["model"])
+        best_f1 = f"{row['f1']:.3f}"
+        best_threshold = f"{row['threshold']:.2f}"
 
-    top_signal = "-"
-    if not xai_df.empty and "feature" in xai_df.columns:
-        top_signal = str(xai_df.iloc[0]["feature"])
+    top_signal = str(xai_df.iloc[0]["feature"]) if not xai_df.empty and "feature" in xai_df.columns else "-"
 
-    st.markdown("## 프로젝트 개요")
+    # ── 타이틀 ──
+    st.markdown(
+        """
+        <div class="section-title">프로젝트 개요</div>
+        <div class="section-sub">RavenStack Synthetic SaaS Dataset 기반 고객 이탈 예측</div>
+        """,
+        unsafe_allow_html=True,
+    )
 
+    # ── KPI 카드 4개 ──
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        _mini_card("고객 수", f"{len(df):,}", "account 기준 분석")
+        _stat("분석 고객 수", f"{len(df):,}명", "account 단위")
     with c2:
-        _mini_card("입력 변수 수", f"{df.shape[1]:,}", "전처리 후 학습 테이블 기준")
+        _stat("입력 피처 수", f"{df.shape[1]:,}개", "전처리 후 기준")
     with c3:
-        _mini_card("Churn 비율", f"{churn_rate:.1f}%", "불균형 분류 문제")
+        _stat("Churn 비율", f"{churn_rate:.1f}%", "불균형 분류 문제")
     with c4:
-        _mini_card("최적 운영 기준", best_threshold, f"{best_model} · F1 {best_f1}")
+        _stat("최적 Threshold", best_threshold, f"{best_model} · F1 {best_f1}")
 
-    st.markdown("")
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    row1_col1, row1_col2 = st.columns(2)
-    with row1_col1:
+    # ── 문제 정의 + 메시지 ──
+    col1, col2 = st.columns(2)
+    with col1:
         _card(
             "문제 정의",
-            """
-<p style="line-height:1.8; margin-bottom:0;">
-SaaS 환경에서는 고객 이탈을 사후적으로 확인하는 것보다,
-<b>이탈 가능성이 높은 고객을 미리 탐지하고 선제적으로 개입</b>하는 것이 더 중요하다.
-본 프로젝트는 account 단위 데이터를 기반으로 churn을 예측하고,
-예측 결과를 SHAP 기반 설명과 연결하여 <b>실질적인 retention 전략</b>까지 제시하는 것을 목표로 한다.
-</p>
-            """,
-        )
-    with row1_col2:
-        _card(
-            "한눈에 보는 프로젝트 메시지",
             f"""
-<ul style="line-height:1.9; margin-bottom:0; padding-left:1.2rem;">
-    <li>최적 모델 후보: <b>{best_model}</b></li>
-    <li>운영 기준 threshold: <b>{best_threshold}</b></li>
-    <li>대표 이탈 신호: <b>{top_signal}</b></li>
-    <li>최종 목표: <b>예측 + 해석 + 유지 전략 연결</b></li>
-</ul>
+            SaaS 환경에서는 이탈을 사후 확인하는 것보다
+            <strong>이탈 가능성이 높은 고객을 미리 탐지해 선제 개입</strong>하는 것이 중요합니다.<br><br>
+            본 프로젝트는 account 단위 데이터를 기반으로 churn을 예측하고,
+            SHAP 해석과 연결해 <strong>실질적인 retention 전략</strong>까지 제시합니다.
             """,
+        )
+    with col2:
+        _card(
+            "핵심 결과 요약",
+            f"""
+            <span class="tag">최적 모델</span> {best_model}<br>
+            <span class="tag">운영 Threshold</span> {best_threshold}<br>
+            <span class="tag">대표 이탈 신호</span> {top_signal}<br><br>
+            <strong>예측 → 해석 → 유지 전략 연결</strong>이 이 대시보드의 목표입니다.
+            """,
+            gray=True,
         )
 
-    row2_col1, row2_col2 = st.columns(2)
-    with row2_col1:
+    # ── 해석 + 흐름 ──
+    col3, col4 = st.columns(2)
+    with col3:
         _card(
-            "핵심 해석",
-            """
-<p style="line-height:1.8; margin-bottom:0;">
-이번 프로젝트에서 중요한 것은 단순 accuracy가 아니라,
-<b>이탈 고객을 얼마나 놓치지 않는지(recall)</b>와
-<b>실무에서 사용할 수 있는 threshold를 어떻게 잡을지</b>이다.
-따라서 우리는 기본 threshold 0.5 결과와 함께
-<b>F1 기준 threshold tuning 결과</b>를 별도로 비교하였다.
-</p>
+            "모델 운영 기준",
+            f"""
+            단순 accuracy가 아닌 <strong>이탈 고객을 얼마나 놓치지 않는지(recall)</strong>와
+            실무 적용 가능한 threshold 설정이 핵심입니다.<br><br>
+            기본값 0.5 대신 <strong>F1 기준 threshold tuning 결과</strong>를 별도 비교했습니다.
             """,
         )
-    with row2_col2:
+    with col4:
         _card(
-            "전체 흐름",
+            "분석 흐름",
             """
-<ol style="line-height:1.9; margin-bottom:0; padding-left:1.2rem;">
-    <li>EDA로 churn 고객 특성 확인</li>
-    <li>ML/DL 성능 비교 및 threshold 재설정</li>
-    <li>XAI로 주요 이탈 요인 해석</li>
-    <li>고객 유지 전략으로 연결</li>
-</ol>
+            <ol style="margin:0; padding-left:1.1rem; line-height:2;">
+                <li>EDA — churn 고객 특성 확인</li>
+                <li>ML/DL 모델 비교 &amp; threshold 설정</li>
+                <li>XAI — 주요 이탈 요인 해석</li>
+                <li>고객 유지 전략으로 연결</li>
+            </ol>
             """,
+            gray=True,
         )
 
-    st.markdown("### 이번 대시보드에서 답하고 싶은 질문")
+    # ── 핵심 질문 3개 ──
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:0.85rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.8rem;">이 대시보드가 답하는 질문</div>',
+        unsafe_allow_html=True,
+    )
     q1, q2, q3 = st.columns(3)
     q1.info("어떤 고객이 이탈 위험이 높은가?")
-    q2.info("모델은 무엇을 근거로 그렇게 판단했는가?")
+    q2.info("모델은 무엇을 근거로 판단했는가?")
     q3.info("그 고객을 유지하기 위해 무엇을 할 수 있는가?")

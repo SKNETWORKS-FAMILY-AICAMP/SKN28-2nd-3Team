@@ -1,108 +1,143 @@
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
-from src.app.utils.load_data import load_group_mean
-from src.config.paths import EDA_PLOTS_DIR
+
+from src.app.utils.load_data import (
+    load_model_comparison,
+    load_model_comparison_tuned,
+    load_threshold_metrics_all_models,
+)
 
 
-def _center_note(text: str) -> None:
-    st.markdown(
-        f"""
-        <div style="
-            text-align: center;
-            color: #000000;
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-top: 0.35rem;
-            margin-bottom: 1.1rem;
-        ">
-            {text}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+def _note(text: str) -> None:
+    st.markdown(f'<div class="note">{text}</div>', unsafe_allow_html=True)
 
 
-def _show_centered_image_with_note(
-    path,
-    caption: str,
-    note: str,
-    big: bool = False,
-) -> None:
-    if not path.exists():
-        return
-
-    if big:
-        st.image(str(path), caption=caption, use_container_width=True)
-    else:
-        left, center, right = st.columns([1, 2.2, 1])
-        with center:
-            st.image(str(path), caption=caption, use_container_width=True)
-
-    _center_note(note)
+def _safe_top(df: pd.DataFrame, metric: str) -> pd.Series | None:
+    if df.empty or metric not in df.columns:
+        return None
+    return df.sort_values(metric, ascending=False).iloc[0]
 
 
 def render() -> None:
-    st.markdown("## EDA: 이탈 고객 특성 탐색")
+    base_df = load_model_comparison()
+    tuned_df = load_model_comparison_tuned()
+    threshold_df = load_threshold_metrics_all_models()
+
+    top_base = _safe_top(base_df, "roc_auc")
+    top_tuned = _safe_top(tuned_df, "f1")
 
     st.markdown(
         """
-        <div class="section-card">
-            <h4 style="margin-top:0;">목적</h4>
-            <p style="line-height:1.7; margin-bottom:0;">
-            churn 고객과 유지 고객의 차이를 비교하여, 
-            어떤 특성이 이탈과 연결되는지 빠르게 파악하는 단계이다.<br>
-            이후 모델링과 해석의 출발점이 되는 기초 탐색 과정으로 볼 수 있다.
-            </p>
-        </div>
+        <div class="section-title">모델 성능</div>
+        <div class="section-sub">어떤 모델이 좋은지보다, 어떤 기준으로 운영할지를 결정하는 단계입니다</div>
         """,
         unsafe_allow_html=True,
     )
 
-    group_mean = load_group_mean()
-    if not group_mean.empty:
-        st.subheader("churn 여부별 평균 차이 상위 변수")
-        st.dataframe(group_mean.head(20), use_container_width=True)
-        _center_note(
-            "이 표는 churn 고객과 유지 고객 사이에서 평균 차이가 크게 나타난 변수를 정리한 결과이다. "
-            "즉, 어떤 특성이 이탈과 더 밀접하게 연결되어 있는지 1차적으로 파악하는 데 의미가 있다."
+    # ── KPI 3개 ──
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(
+            "기본 성능 기준 모델",
+            top_base["model"] if top_base is not None else "N/A",
+            help="ROC-AUC 기준 최고 모델",
         )
-    else:
-        st.info("group_mean_by_churn.csv 파일이 없습니다.")
+    with c2:
+        st.metric(
+            "최적 Threshold",
+            f"{top_tuned['threshold']:.2f}" if top_tuned is not None else "N/A",
+            help="F1 기준 최적 임계값",
+        )
+    with c3:
+        st.metric(
+            "최고 F1",
+            f"{top_tuned['f1']:.3f}" if top_tuned is not None else "N/A",
+            help="Tuning 후 최고 F1 스코어",
+        )
 
-    st.subheader("주요 시각화")
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    image_specs = [
-        (
-            "target_distribution_overall.png",
-            "전체 churn 분포",
-            "이 그래프는 전체 데이터에서 이탈 고객과 유지 고객이 어떻게 분포하는지 보여준다. "
-            "클래스 불균형 정도를 확인하는 단계이며, 이후 모델 평가에서 accuracy보다 recall과 F1을 함께 봐야 하는 이유와도 연결된다.",
-            False,
-        ),
-        (
-            "correlation_heatmap_key_features.png",
-            "핵심 변수 상관관계",
-            "이 히트맵은 주요 변수들 사이의 상관관계를 보여준다. "
-            "서로 유사한 정보를 담는 변수가 많은지 확인할 수 있으며, 해석 단계에서는 특정 변수 하나보다 변수 묶음이 함께 작동할 가능성을 시사한다.",
-            True,
-        ),
-        (
-            "bar_mean_by_churn_usage.png",
-            "사용량 평균 비교",
-            "이 그래프는 churn 여부에 따라 고객 사용량 평균이 어떻게 달라지는지 보여준다. "
-            "이탈 고객의 사용량이 더 낮게 나타난다면, 사용 저하가 단순 현상이 아니라 실제 이탈 위험 신호일 가능성이 높다고 해석할 수 있다.",
-            False,
-        ),
-        (
-            "bar_mean_by_churn_health_score.png",
-            "health score 평균 비교",
-            "이 그래프는 고객 상태를 종합적으로 나타내는 health score가 churn 여부에 따라 어떻게 달라지는지 보여준다. "
-            "이탈 고객의 health score가 낮다면, 서비스 전반의 품질 저하나 고객 경험 악화가 이탈과 연결될 수 있음을 시사한다.",
-            False,
-        ),
-    ]
+    # ── 탭 ──
+    tab1, tab2, tab3 = st.tabs(["기본 비교 (threshold 0.5)", "Tuned 비교", "Threshold 곡선"])
 
-    for filename, caption, note, big in image_specs:
-        path = EDA_PLOTS_DIR / filename
-        _show_centered_image_with_note(path, caption, note, big=big)
+    with tab1:
+        if base_df.empty:
+            st.info("model_comparison.csv 파일을 찾을 수 없습니다.")
+        else:
+            st.dataframe(base_df, use_container_width=True)
+            _note(
+                "기본 threshold 0.5 적용 결과입니다. "
+                "각 모델의 기본 분류 성능을 확인하는 출발점입니다."
+            )
+
+    with tab2:
+        if tuned_df.empty:
+            st.info("model_comparison_tuned.csv 파일을 찾을 수 없습니다.")
+        else:
+            st.dataframe(tuned_df, use_container_width=True)
+            _note(
+                "threshold를 조정한 뒤의 성능 비교입니다. "
+                "실제 업무 목적에 맞는 운영 기준을 별도로 설정하는 것이 더 중요합니다."
+            )
+
+    with tab3:
+        if threshold_df.empty:
+            st.info("threshold_metrics_all_models.csv 파일을 찾을 수 없습니다.")
+        else:
+            pivot_f1       = threshold_df.pivot(index="threshold", columns="model", values="f1")
+            pivot_precision = threshold_df.pivot(index="threshold", columns="model", values="precision")
+            pivot_recall   = threshold_df.pivot(index="threshold", columns="model", values="recall")
+
+            st.markdown("**F1**")
+            st.line_chart(pivot_f1, use_container_width=True)
+            _note("precision과 recall의 균형이 가장 잘 맞는 threshold를 찾기 위한 그래프입니다.")
+
+            st.markdown("**Precision**")
+            st.line_chart(pivot_precision, use_container_width=True)
+            _note("threshold를 높일수록 precision은 올라가지만, 실제 이탈 고객을 놓칠 가능성도 커집니다.")
+
+            st.markdown("**Recall**")
+            st.line_chart(pivot_recall, use_container_width=True)
+            _note("churn 문제에서는 실제 이탈 고객을 놓치지 않는 것이 중요하므로 recall 변화에 주목합니다.")
+
+    # ── 실무 해석 ──
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+    st.markdown("#### 실무 해석")
+
+    left, right = st.columns(2)
+    with left:
+        st.markdown(
+            """
+            <div class="card-gray">
+                <h4>왜 Threshold Tuning이 필요한가?</h4>
+                <p style="color:#334155; font-size:0.93rem; line-height:1.75; margin:0;">
+                churn 문제에서 기본값 0.5는 항상 최적이 아닙니다.
+                이탈 고객을 더 많이 잡아내려면 threshold를 낮추는 전략이 필요할 수 있습니다.<br><br>
+                <strong>이탈 고객 포착률(recall)</strong>과
+                <strong>과탐지 방지(precision)</strong> 사이의 균형을 맞추는 작업입니다.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with right:
+        if top_tuned is not None:
+            st.markdown(
+                f"""
+                <div class="card">
+                    <h4>결론</h4>
+                    <p style="color:#334155; font-size:0.93rem; line-height:1.75; margin:0;">
+                    <strong>{top_tuned['model']}</strong>이
+                    threshold <strong>{top_tuned['threshold']:.2f}</strong>에서
+                    F1 <strong>{top_tuned['f1']:.3f}</strong>으로 가장 균형 잡힌 성능을 보였습니다.<br><br>
+                    운영 환경에서는 기본 0.5를 고정하기보다
+                    <strong>업무 목적에 맞춰 threshold를 조정</strong>하는 접근이 적절합니다.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Tuned 결과를 불러오지 못했습니다.")
