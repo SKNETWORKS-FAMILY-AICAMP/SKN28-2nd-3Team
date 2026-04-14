@@ -1,3 +1,4 @@
+# settings.py
 RANDOM_STATE = 42
 VALID_SIZE = 0.15
 TEST_SIZE = 0.15
