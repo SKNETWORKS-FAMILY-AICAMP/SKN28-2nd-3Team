@@ -24,7 +24,7 @@
 - 주제: 설명 가능한 AI 기반 SaaS 고객 이탈 예측 및 고객 유지 전략 제안
 - 데이터셋: RavenStack Synthetic SaaS Dataset
 - 분석 단위: account 기준 (500개)
-- 입력 변수 수: 74개
+- 입력 변수 수: 74개 (총 75개 변수 중 churn_flag를 제외한 74개를 모델 입력 피처로 사용하였다.)
 - 타깃 변수: `churn_flag`
 - Churn 비율: 22.0%
 - 운영 최적 threshold: 0.45
