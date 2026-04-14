@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import pandas as pd
@@ -129,44 +130,43 @@ def render() -> None:
                 "이 그래프는 threshold 변화에 따라 recall이 어떻게 달라지는지를 보여준다. "
                 "실무적으로 churn 문제에서는 실제 이탈 고객을 놓치지 않는 것이 중요하므로, recall의 변화는 운영 기준을 정할 때 특히 중요한 판단 근거가 된다."
             )
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+st.markdown("### 실무 해석")
 
-    # st.markdown("### 실무 해석")
+left, right = st.columns(2)
 
-    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-    st.markdown("### 실무 해석")
-    
-    left, right = st.columns(2)
+# ── 왜 필요한가 ──
+with left:
+    st.markdown(
+        """
+        <div class="card-gray">
+            <h4>왜 Threshold Tuning이 필요한가?</h4>
+            <p style="line-height:1.8; margin-bottom:0;">
+            churn 문제에서는 기본 0.5 기준이 항상 최적이 아니다.<br><br>
+            이탈 고객을 더 많이 잡아내기 위해 threshold를 낮추는 전략이 필요하다.<br><br>
+            <b>recall(이탈 포착)</b>과 <b>precision(과탐 방지)</b> 사이의 균형을 맞추는 것이 핵심이다.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with left:
+# ── 결론 ──
+with right:
+    if top_tuned is not None:
         st.markdown(
-            """
-            <div class="card">
-                <h4>왜 Threshold Tuning이 필요한가?</h4>
+            f"""
+            <div class="card-gray">
+                <h4>결론</h4>
                 <p style="line-height:1.8; margin-bottom:0;">
-                churn 문제에서는 기본 0.5 기준이 항상 최적이 아니다.<br><br>
-                이탈 고객을 더 많이 잡아내기 위해 threshold를 낮추는 전략이 필요하다.<br><br>
-                <b>recall(이탈 포착)</b>과 <b>precision(과탐 방지)</b> 사이의 균형을 맞추는 것이 핵심이다.
+                <b>{top_tuned['model']}</b> 모델이<br>
+                threshold <b>{top_tuned['threshold']:.2f}</b>에서<br>
+                F1 <b>{top_tuned['f1']:.3f}</b>로 가장 균형 잡힌 성능을 보였다.<br><br>
+                따라서 운영에서는 <b>threshold를 목적에 맞게 조정</b>하는 것이 중요하다.
                 </p>
             </div>
             """,
             unsafe_allow_html=True,
         )
-
-    with right:
-        if top_tuned is not None:
-            st.markdown(
-                f"""
-                <div class="card">
-                    <h4>결론</h4>
-                    <p style="line-height:1.8; margin-bottom:0;">
-                    <b>{top_tuned['model']}</b> 모델이<br>
-                    threshold <b>{top_tuned['threshold']:.2f}</b>에서<br>
-                    F1 <b>{top_tuned['f1']:.3f}</b>로 가장 균형 잡힌 성능을 보였다.<br><br>
-                    따라서 운영에서는 <b>threshold를 목적에 맞게 조정</b>하는 것이 중요하다.
-                    </p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-        )
-        else:
-            st.info("Tuned 결과를 불러오지 못했습니다.")
+    else:
+        st.info("Tuned 결과를 불러오지 못했습니다.")
