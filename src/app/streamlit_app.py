@@ -1,10 +1,8 @@
 # streamlit_app.py
-
 from __future__ import annotations
 
 import sys
 from pathlib import Path
-from textwrap import dedent
 
 import streamlit as st
 
@@ -52,21 +50,25 @@ def inject_custom_css() -> None:
         }
 
         .block-container {
-            padding: 2rem 2.5rem 3rem 2.5rem;
+            padding: 3.2rem 2.5rem 3rem 2.5rem;
             max-width: 1280px;
         }
 
         /* ── 사이드바 ── */
         [data-testid="stSidebar"] {
-            min-width: 240px;
-            max-width: 240px;
+            min-width: 290px;
+            max-width: 290px;
             background: #0f172a;
             border-right: none;
         }
 
-        [data-testid="stSidebarCollapsedControl"] { display: none; }
+        [data-testid="stSidebarCollapsedControl"] {
+            display: none;
+        }
 
-        [data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+        [data-testid="stSidebar"] * {
+            color: #e2e8f0 !important;
+        }
 
         [data-testid="stSidebar"] .stRadio label {
             padding: 0.55rem 0.9rem;
@@ -74,6 +76,7 @@ def inject_custom_css() -> None:
             transition: background 0.15s;
             font-size: 0.92rem;
             font-weight: 500;
+            white-space: nowrap;
         }
 
         [data-testid="stSidebar"] .stRadio label:hover {
@@ -85,6 +88,7 @@ def inject_custom_css() -> None:
             background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e40af 100%);
             border-radius: 20px;
             padding: 2rem 2.4rem 1.8rem;
+            margin-top: 0.4rem;
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
@@ -93,8 +97,10 @@ def inject_custom_css() -> None:
         .hero::after {
             content: '';
             position: absolute;
-            top: -60px; right: -60px;
-            width: 240px; height: 240px;
+            top: -60px;
+            right: -60px;
+            width: 240px;
+            height: 240px;
             background: radial-gradient(circle, rgba(96,165,250,0.15) 0%, transparent 70%);
             border-radius: 50%;
         }
@@ -231,16 +237,25 @@ def inject_custom_css() -> None:
             margin-right: 0.3rem;
         }
 
-        .tag-red   { background:#fef2f2; color:#dc2626; }
-        .tag-green { background:#f0fdf4; color:#16a34a; }
-        .tag-amber { background:#fffbeb; color:#d97706; }
+        .tag-red   { background: #fef2f2; color: #dc2626; }
+        .tag-green { background: #f0fdf4; color: #16a34a; }
+        .tag-amber { background: #fffbeb; color: #d97706; }
 
         /* ── Streamlit 기본 요소 ── */
-        h1,h2,h3,h4 { color: #0f172a; letter-spacing: -0.015em; }
+        h1, h2, h3, h4 {
+            color: #0f172a;
+            letter-spacing: -0.015em;
+        }
 
-        div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+        div[data-testid="stDataFrame"] {
+            border-radius: 12px;
+            overflow: hidden;
+        }
 
-        .stTabs [data-baseweb="tab-list"] { gap: 0.3rem; border-bottom: 2px solid #e2e8f0; }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 0.3rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
 
         .stTabs [data-baseweb="tab"] {
             font-size: 0.9rem;
@@ -262,13 +277,26 @@ def inject_custom_css() -> None:
             font-size: 0.92rem;
         }
 
-        .stMetric { background: #f8fafc; border-radius: 12px; padding: 0.75rem 1rem; }
+        .stMetric {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
 
         /* ── 반응형 ── */
         @media (max-width: 900px) {
-            .block-container { padding: 1.5rem 1.2rem; }
-            .hero-title { font-size: 1.55rem; }
-            [data-testid="stSidebar"] { min-width: 200px; max-width: 200px; }
+            .block-container {
+                padding: 2.4rem 1.2rem 2.4rem 1.2rem;
+            }
+
+            .hero-title {
+                font-size: 1.55rem;
+            }
+
+            [data-testid="stSidebar"] {
+                min-width: 240px;
+                max-width: 240px;
+            }
         }
         </style>
         """,
@@ -346,8 +374,8 @@ def render_page(page: str) -> None:
 def main() -> None:
     apply_global_settings()
     inject_custom_css()
-    render_header()
     selected_page = render_sidebar()
+    render_header()
     render_page(selected_page)
 
 
