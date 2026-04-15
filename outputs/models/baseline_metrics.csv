@@ -1,2 +1,0 @@
-﻿model,best_threshold,accuracy,precision,recall,f1,roc_auc
-logistic_regression,0.1,0.24,0.19696969696969696,0.7647058823529411,0.3132530120481928,0.32555780933062883
