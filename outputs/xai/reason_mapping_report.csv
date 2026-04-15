@@ -1,0 +1,17 @@
+﻿item,score,note
+active_subscription_ratio,0.025221325561435443,모델이 중요하게 본 이탈 전 신호
+error_rate,0.018205981749382597,모델이 중요하게 본 이탈 전 신호
+industry_DevTools,0.016530585318590033,모델이 중요하게 본 이탈 전 신호
+avg_first_response_time_minutes,0.013915742241102043,모델이 중요하게 본 이탈 전 신호
+days_since_last_usage,0.013753399141648404,모델이 중요하게 본 이탈 전 신호
+recent_upgrade_90d,0.013538552666185755,모델이 중요하게 본 이탈 전 신호
+max_sub_seats,0.012359534547557536,모델이 중요하게 본 이탈 전 신호
+error_per_subscription,0.011832604441998018,모델이 중요하게 본 이탈 전 신호
+health_score,0.011069679088640445,모델이 중요하게 본 이탈 전 신호
+usage_per_subscription,0.010885420466392091,모델이 중요하게 본 이탈 전 신호
+unknown,203.0,실제 churn_events 기반 사후 사유 요약
+budget,69.0,실제 churn_events 기반 사후 사유 요약
+support,66.0,실제 churn_events 기반 사후 사유 요약
+competitor,57.0,실제 churn_events 기반 사후 사유 요약
+pricing,53.0,실제 churn_events 기반 사후 사유 요약
+features,52.0,실제 churn_events 기반 사후 사유 요약
