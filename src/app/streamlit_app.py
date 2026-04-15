@@ -63,9 +63,9 @@ def inject_custom_css() -> None:
             border-right: none;
         }
 
-        [data-testid="stSidebarCollapsedControl"] {
+        /*[data-testid="stSidebarCollapsedControl"] {
             display: none;
-        }
+        } */
 
         [data-testid="stSidebar"] * {
             color: #e2e8f0 !important;
