@@ -65,9 +65,9 @@ def render() -> None:
 
         st.markdown(
             """
-            <div class="section-card">
+            <div class="card-gray">
                 <h4 style="margin-top:0;">핵심 메시지</h4>
-                <p style="line-height:1.7; margin-bottom:0;">
+                <p style="line-height:1.8; margin-bottom:0;">
                 어떤 모델이 좋은지보다, 어떤 기준으로 운영할지를 결정하는 단계이다.<br>
                 threshold 변화에 따른 precision·recall·F1의 균형을 함께 비교하였다.
                 </p>
