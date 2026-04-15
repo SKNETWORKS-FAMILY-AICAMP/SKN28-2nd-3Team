@@ -127,7 +127,7 @@ def render() -> None:
         if top_tuned is not None:
             st.markdown(
                 f"""
-                <div class="card">
+                <div class="card-gray">
                     <h4>결론</h4>
                     <p style="color:#334155; font-size:0.93rem; line-height:1.75; margin:0;">
                     <strong>{top_tuned['model']}</strong>이
