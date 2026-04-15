@@ -162,6 +162,7 @@ def render() -> None:
             """,
             unsafe_allow_html=True,
         )
+    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
     # ── feature 미리보기 + 해석 포인트 ──
     left, right = st.columns([1.3, 1])
