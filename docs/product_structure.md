@@ -10,7 +10,7 @@
 ## Directory Tree
 
 ```text
-아카이브/
+SKN28-2nd-3Team/
 ├── README.md                                      # 프로젝트 소개, 개요, 실행 흐름, 배포 링크 정리 문서
 ├── requirements.txt                               # 프로젝트 실행에 필요한 파이썬 패키지 목록
 
