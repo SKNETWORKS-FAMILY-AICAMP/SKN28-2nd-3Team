@@ -1,16 +1,18 @@
+# xai_section.py
 
-from __future__ import annotations
+from __future__ import annotations  # 타입 힌트에서 forward reference 사용 가능하게 설정
 
-from pathlib import Path
-from textwrap import dedent
+from pathlib import Path  # 파일 경로 객체를 다루기 위한 모듈
+from textwrap import dedent  # 여러 줄 문자열의 공통 들여쓰기를 정리할 때 사용하는 유틸 (현재는 사용되지 않지만 확장 대비)
 
-import pandas as pd
-import streamlit as st
+import pandas as pd  # 데이터프레임 처리용 라이브러리
+import streamlit as st  # Streamlit UI 구성 라이브러리
 
-from src.app.utils.load_data import load_xai_summary
-from src.config.paths import XAI_OUTPUT_DIR
+from src.app.utils.load_data import load_xai_summary  # XAI 요약 결과 CSV를 불러오는 함수
+from src.config.paths import XAI_OUTPUT_DIR  # SHAP 이미지가 저장된 출력 디렉토리 경로
 
 
+# 원문 feature명을 한글 변수명, 설명, 해석 포인트로 연결하는 매핑 사전
 FEATURE_KR_MAP = {
     "active_subscription_ratio":           ("활성 구독 비율",        "현재 구독 중 실제로 활성 상태인 비율",          "낮을수록 서비스를 실제로 덜 활용 중일 수 있습니다."),
     "error_rate":                          ("오류 발생 비율",         "전체 사용 대비 오류 발생 비율",                 "높을수록 서비스 품질 불만이 커질 수 있습니다."),
@@ -30,13 +32,18 @@ FEATURE_KR_MAP = {
 }
 
 
+# note 클래스 스타일을 이용해 설명 문구를 출력하는 함수
 def _note(text: str) -> None:
     st.markdown(f'<div class="note">{text}</div>', unsafe_allow_html=True)
 
 
+# 상위 이탈 신호를 stat-card 스타일 카드 HTML로 만들어 반환하는 함수
 def _signal_card(rank: str, feature: str) -> str:
+    # feature에 대한 한글 정보 조회
     info = FEATURE_KR_MAP.get(feature, {})
+    # 매핑 정보가 있으면 한글명, 없으면 원문 그대로 사용
     kr_name = info[0] if info else feature
+    # 카드 형태 HTML 문자열 반환
     return f"""
     <div class="stat-card">
         <div class="stat-label">{rank}</div>
@@ -46,32 +53,56 @@ def _signal_card(rank: str, feature: str) -> str:
     """
 
 
+# XAI 요약 데이터를 한글 설명 테이블 형태로 가공하는 함수
 def _build_table(summary: pd.DataFrame) -> pd.DataFrame:
+    # 원본 훼손을 막기 위해 복사본 생성
     df = summary.copy()
+
+    # 중요도 컬럼 생성 (소수점 4자리 반올림)
     df["중요도"] = df["mean_abs_shap"].round(4)
+
+    # feature명을 한글 변수명으로 변환
     df["한글 변수명"] = df["feature"].apply(lambda x: FEATURE_KR_MAP.get(x, ("설명 준비 중",))[0])
+
+    # feature 설명 추가
     df["설명"] = df["feature"].apply(lambda x: FEATURE_KR_MAP.get(x, ("", "해당 변수 설명을 추가해주세요."))[1] if len(FEATURE_KR_MAP.get(x, ())) > 1 else "")
+
+    # 해석 포인트 추가
     df["해석 포인트"] = df["feature"].apply(lambda x: FEATURE_KR_MAP.get(x, ("", "", "해석 포인트를 추가해주세요."))[2] if len(FEATURE_KR_MAP.get(x, ())) > 2 else "")
+
+    # 원본 feature 컬럼명을 보기 좋게 변경
     df = df.rename(columns={"feature": "feature (원문)"})
+
+    # 필요한 컬럼만 순서대로 반환
     return df[["feature (원문)", "한글 변수명", "중요도", "설명", "해석 포인트"]]
 
 
+# 이미지 파일을 화면에 보여주고, 아래에 note 설명까지 출력하는 함수
 def _show_image(path: Path, caption: str, note: str, ratio: float = 0.72) -> None:
+    # 이미지 파일이 없으면 안내 후 종료
     if not path.exists():
         st.info(f"{path.name} 파일을 찾을 수 없습니다.")
         return
+
+    # ratio가 거의 1이면 전체 폭으로 표시
     if ratio >= 0.95:
         st.image(str(path), caption=caption, use_container_width=True)
     else:
+        # 가운데 정렬을 위해 좌우 여백 컬럼 생성
         side = (1 - ratio) / 2
         _, center, _ = st.columns([side, ratio, side])
         with center:
             st.image(str(path), caption=caption, use_container_width=True)
+
+    # 이미지 설명 note 출력
     _note(note)
 
 
+# 유지 전략 카드를 HTML 형태로 출력하는 함수
 def _strategy_card(title: str, body: str, tag: str = "") -> None:
+    # tag가 있으면 빨간 태그 배지 생성
     tag_html = f'<span class="tag tag-red">{tag}</span><br>' if tag else ""
+
     st.markdown(
         f"""
         <div class="card">
@@ -84,10 +115,15 @@ def _strategy_card(title: str, body: str, tag: str = "") -> None:
     )
 
 
+# Streamlit에서 실제로 호출되는 XAI 섹션 메인 렌더링 함수
 def render() -> None:
+    # XAI 요약 결과 로드
     summary = load_xai_summary()
+
+    # 상위 5개 중요 변수 목록 추출
     top_features = summary["feature"].head(5).tolist() if not summary.empty else []
 
+    # 페이지 제목과 부제목 출력
     st.markdown(
         """
         <div class="section-title">이탈 요인 해석 & 유지 전략</div>
@@ -97,25 +133,40 @@ def render() -> None:
     )
 
     # ── 상위 이탈 신호 3개 ──
+    # 가장 중요한 이탈 신호 3개를 카드 형태로 보여주는 영역
     c1, c2, c3 = st.columns(3)
+
     with c1:
         st.markdown(_signal_card("대표 이탈 신호 #1", top_features[0] if len(top_features) > 0 else "N/A"), unsafe_allow_html=True)
+
     with c2:
         st.markdown(_signal_card("대표 이탈 신호 #2", top_features[1] if len(top_features) > 1 else "N/A"), unsafe_allow_html=True)
+
     with c3:
         st.markdown(_signal_card("대표 이탈 신호 #3", top_features[2] if len(top_features) > 2 else "N/A"), unsafe_allow_html=True)
 
+    # 구분선
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-    # ── 탭 ──
+    # ── 탭 구성 ──
+    # XAI 요약표 / SHAP 시각화 / 유지 전략 3개 관점으로 구분
     tab1, tab2, tab3 = st.tabs(["XAI 요약표", "SHAP 시각화", "유지 전략"])
 
+    # -------------------------------
+    # 탭 1: XAI 요약표
+    # -------------------------------
     with tab1:
+        # 요약 데이터가 없으면 안내
         if summary.empty:
             st.info("xai_summary_report.csv 파일을 찾을 수 없습니다.")
         else:
+            # 표 설명
             st.caption("상위 15개 중요 변수의 원문명, 한글 설명, 해석 포인트를 함께 제공합니다.")
+
+            # 상위 15개 변수만 한글 해석 테이블로 변환
             view = _build_table(summary.head(15))
+
+            # 데이터프레임 출력
             st.dataframe(
                 view,
                 use_container_width=True,
@@ -128,11 +179,14 @@ def render() -> None:
                     "해석 포인트":   st.column_config.TextColumn(width="large"),
                 },
             )
+
+            # 표 해설 note
             _note(
                 "모델이 churn 판단 시 중요하게 반영한 상위 15개 변수입니다. "
                 "중요도 값이 클수록 예측에 더 큰 영향을 준 변수입니다."
             )
 
+            # 초심자용 읽는 법 설명
             with st.expander("처음 보시는 분을 위한 읽는 법", expanded=False):
                 st.markdown(
                     """
@@ -145,13 +199,19 @@ def render() -> None:
                     """
                 )
 
+    # -------------------------------
+    # 탭 2: SHAP 시각화
+    # -------------------------------
     with tab2:
+        # SHAP summary plot 이미지 출력
         _show_image(
             XAI_OUTPUT_DIR / "shap_summary.png",
             "변수 영향 방향과 크기",
             "각 변수가 churn 확률을 높이는 방향인지 낮추는 방향인지, 영향의 크기를 함께 보여줍니다.",
             ratio=0.72,
         )
+
+        # SHAP bar plot 이미지 출력
         _show_image(
             XAI_OUTPUT_DIR / "shap_bar.png",
             "평균 영향도 기준 상위 변수",
@@ -159,8 +219,13 @@ def render() -> None:
             ratio=0.62,
         )
 
+    # -------------------------------
+    # 탭 3: 유지 전략
+    # -------------------------------
     with tab3:
+        # 첫 번째 줄: 전략 카드 2개
         r1c1, r1c2 = st.columns(2)
+
         with r1c1:
             _strategy_card(
                 "전략 1. 사용량 저하 고객 선제 케어",
@@ -169,6 +234,7 @@ def render() -> None:
                 "튜토리얼·리마인드 메일·기능 재활성화 캠페인을 우선 적용하세요.",
                 tag="사용 저하",
             )
+
         with r1c2:
             _strategy_card(
                 "전략 2. 오류 경험 고객 즉시 대응",
@@ -178,7 +244,9 @@ def render() -> None:
                 tag="오류·응답 지연",
             )
 
+        # 두 번째 줄: 전략 카드 1개 + 핵심 메시지 카드 1개
         r2c1, r2c2 = st.columns(2)
+
         with r2c1:
             _strategy_card(
                 "전략 3. 고위험 고객군 세분화 운영",
@@ -187,6 +255,7 @@ def render() -> None:
                 "훨씬 정교한 retention 액션 설계가 가능합니다.",
                 tag="세분화",
             )
+
         with r2c2:
             st.markdown(
                 """

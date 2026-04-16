@@ -1,27 +1,31 @@
-from __future__ import annotations
+# load_data.py
 
-import pickle
-from pathlib import Path
-from typing import Any
+from __future__ import annotations  # 타입 힌트에서 forward reference 사용 가능하게 설정
 
-import joblib
-import pandas as pd
-import streamlit as st
-import torch
-import torch.nn as nn
+import pickle  # pickle 기반 객체 로드용
+from pathlib import Path  # 파일 경로 처리용 객체
+from typing import Any  # 다양한 타입 허용
+
+import joblib  # sklearn 모델 로딩용
+import pandas as pd  # 데이터프레임 처리
+import streamlit as st  # Streamlit 캐싱 및 UI
+import torch  # 딥러닝 모델 처리
+import torch.nn as nn  # 신경망 정의
 
 
 # -----------------------------------
 # 경로 설정
 # -----------------------------------
 try:
+    # 정상적인 프로젝트 구조에서 경로 import
     from src.config.paths import (
-        PROCESSED_DIR,
-        EDA_TABLES_DIR,
-        MODELS_OUTPUT_DIR,
-        XAI_OUTPUT_DIR,
+        PROCESSED_DIR,       # 전처리 데이터 경로
+        EDA_TABLES_DIR,      # EDA 결과 경로
+        MODELS_OUTPUT_DIR,   # 모델 결과 경로
+        XAI_OUTPUT_DIR,      # XAI 결과 경로
     )
 except ImportError:
+    # Streamlit Cloud 등에서 import 실패 시 fallback 경로 설정
     PROJECT_ROOT = Path(__file__).resolve().parents[3]
     PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
     EDA_TABLES_DIR = PROJECT_ROOT / "outputs" / "eda" / "tables"
@@ -34,26 +38,27 @@ except ImportError:
 # -----------------------------------
 class MLP(nn.Module):
     def __init__(self, input_dim: int):
-        super().__init__()
+        super().__init__()  # 부모 클래스 초기화
+        # 다층 퍼셉트론 구조 정의
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 64),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(64, 32),
+            nn.Linear(input_dim, 64),  # 입력 → 64 노드
+            nn.ReLU(),                 # 활성화 함수
+            nn.Dropout(0.3),           # 과적합 방지
+            nn.Linear(64, 32),         # 64 → 32
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(32, 1),
-            nn.Sigmoid(),
+            nn.Linear(32, 1),          # 출력층
+            nn.Sigmoid(),              # 확률 값으로 변환
         )
 
     def forward(self, x):
-        return self.model(x)
+        return self.model(x)  # 순전파 정의
 
 
 # -----------------------------------
 # 기본 데이터 로드
 # -----------------------------------
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False)  # 캐싱으로 성능 최적화
 def load_train_table() -> pd.DataFrame:
     path = PROCESSED_DIR / "train_table_ml.csv"
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
@@ -124,20 +129,17 @@ def load_model() -> Any | None:
     if not path.exists():
         return None
     try:
-        return joblib.load(path)
+        return joblib.load(path)  # sklearn 모델 로드
     except Exception:
         return None
 
 
 def load_ml_model() -> Any | None:
-    return load_model()
+    return load_model()  # 기본 모델 alias
 
 
 def load_random_forest_model() -> Any | None:
-    """
-    별도 random forest 저장 파일이 있을 때만 사용.
-    없으면 None 반환.
-    """
+    # 여러 파일명을 순회하며 RF 모델 탐색
     candidate_names = [
         "random_forest_model.pkl",
         "rf_model.pkl",
@@ -189,10 +191,10 @@ def load_dl_model() -> nn.Module | None:
         return None
 
     try:
-        model = MLP(input_dim=len(feature_names))
-        state_dict = torch.load(model_path, map_location="cpu")
-        model.load_state_dict(state_dict)
-        model.eval()
+        model = MLP(input_dim=len(feature_names))  # 모델 구조 생성
+        state_dict = torch.load(model_path, map_location="cpu")  # weight 로드
+        model.load_state_dict(state_dict)  # weight 적용
+        model.eval()  # 추론 모드 설정
         return model
     except Exception:
         return None
@@ -202,20 +204,24 @@ def load_dl_model() -> nn.Module | None:
 # 전처리 공통 함수
 # -----------------------------------
 def _prepare_numeric_features(X: pd.DataFrame) -> pd.DataFrame:
-    X = X.copy()
+    X = X.copy()  # 원본 보호
 
+    # ID 컬럼 제거
     drop_cols = ["account_id", "customer_id", "id"]
     existing_drop_cols = [c for c in drop_cols if c in X.columns]
     if existing_drop_cols:
         X = X.drop(columns=existing_drop_cols)
 
+    # bool → int 변환
     bool_cols = X.select_dtypes(include=["bool"]).columns.tolist()
     for col in bool_cols:
         X[col] = X[col].astype(int)
 
+    # 숫자형 컬럼만 선택
     numeric_cols = X.select_dtypes(include=["number"]).columns.tolist()
     X = X[numeric_cols].copy()
 
+    # 결측치 median으로 대체
     for col in X.columns:
         X[col] = X[col].fillna(X[col].median())
 
@@ -262,6 +268,7 @@ def predict_dl_row(row: pd.DataFrame) -> float | None:
     try:
         X = _prepare_numeric_features(row)
 
+        # feature mismatch 체크
         missing_cols = [col for col in feature_names if col not in X.columns]
         if missing_cols:
             return None
@@ -276,102 +283,3 @@ def predict_dl_row(row: pd.DataFrame) -> float | None:
         return float(pred_proba)
     except Exception:
         return None
-
-
-# -----------------------------------
-# 고객별 예측 비교표 생성
-# -----------------------------------
-@st.cache_data(show_spinner=False)
-def build_prediction_comparison() -> pd.DataFrame:
-    X_test = load_x_test()
-    y_test = load_y_test()
-
-    if X_test.empty:
-        return pd.DataFrame()
-
-    result = pd.DataFrame()
-
-    if "account_id" in X_test.columns:
-        result["account_id"] = X_test["account_id"].values
-
-    # Logistic / best_model 기반 예측
-    ml_model = load_ml_model()
-    if ml_model is not None:
-        try:
-            X_ml = _prepare_numeric_features(X_test)
-            result["ml_logistic_proba"] = ml_model.predict_proba(X_ml)[:, 1]
-        except Exception:
-            result["ml_logistic_proba"] = pd.NA
-    else:
-        result["ml_logistic_proba"] = pd.NA
-
-    # Random Forest 예측
-    rf_model = load_random_forest_model()
-    if rf_model is not None:
-        try:
-            X_rf = _prepare_numeric_features(X_test)
-            result["ml_random_forest_proba"] = rf_model.predict_proba(X_rf)[:, 1]
-        except Exception:
-            result["ml_random_forest_proba"] = pd.NA
-    else:
-        result["ml_random_forest_proba"] = pd.NA
-
-    # DL 예측
-    dl_model = load_dl_model()
-    dl_scaler = _load_dl_scaler()
-    dl_feature_names = _load_dl_feature_columns()
-
-    if dl_model is not None and dl_scaler is not None and dl_feature_names:
-        try:
-            X_dl = _prepare_numeric_features(X_test)
-            missing_cols = [c for c in dl_feature_names if c not in X_dl.columns]
-
-            if not missing_cols:
-                X_dl = X_dl[dl_feature_names]
-                X_scaled = dl_scaler.transform(X_dl)
-                X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-
-                with torch.no_grad():
-                    dl_pred = dl_model(X_tensor).squeeze().numpy()
-
-                result["dl_mlp_proba"] = dl_pred
-            else:
-                result["dl_mlp_proba"] = pd.NA
-        except Exception:
-            result["dl_mlp_proba"] = pd.NA
-    else:
-        result["dl_mlp_proba"] = pd.NA
-
-    # 실제 정답 붙이기
-    if not y_test.empty:
-        try:
-            if "churn_flag" in y_test.columns:
-                result["actual_churn_flag"] = y_test["churn_flag"].values
-            else:
-                result["actual_churn_flag"] = y_test.iloc[:, 0].values
-        except Exception:
-            result["actual_churn_flag"] = pd.NA
-
-    return result
-
-
-# -----------------------------------
-# threshold map
-# -----------------------------------
-def get_tuned_threshold_map() -> dict[str, float]:
-    tuned_df = load_model_comparison_tuned()
-
-    if tuned_df.empty:
-        return {}
-
-    required_cols = {"model", "threshold"}
-    if not required_cols.issubset(set(tuned_df.columns)):
-        return {}
-
-    mapping: dict[str, float] = {}
-    for _, row in tuned_df.iterrows():
-        try:
-            mapping[str(row["model"])] = float(row["threshold"])
-        except Exception:
-            continue
-    return mapping

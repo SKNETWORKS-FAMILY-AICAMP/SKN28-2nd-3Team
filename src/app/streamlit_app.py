@@ -1,4 +1,13 @@
 # streamlit_app.py
+"""
+이 파일은 Streamlit 기반 SaaS 고객 이탈 예측 대시보드의 메인 실행 파일이다.
+
+역할:
+- 전체 페이지 레이아웃 구성
+- 사이드바 네비게이션 관리
+- 각 섹션(EDA, 모델, XAI 등) 페이지 연결
+- 공통 스타일(CSS) 및 설정 적용
+"""
 
 from __future__ import annotations
 
