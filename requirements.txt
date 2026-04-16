@@ -1,9 +1,13 @@
-# 코드에서 실제 import/사용된 패키지 기준 업데이트
-streamlit==1.44.1
-pandas==2.2.3
-numpy==2.1.3
-scikit-learn==1.5.2
-matplotlib==3.9.2
-shap==0.46.0
-joblib==1.4.2
-torch==2.5.1
+# conda create -n ai_project_env python=3.12 -y
+# conda activate ai_project_env
+# pip install -r requirements.txt
+
+pandas
+numpy
+matplotlib
+scikit-learn
+joblib
+torch
+shap
+streamlit
+ipykernel
