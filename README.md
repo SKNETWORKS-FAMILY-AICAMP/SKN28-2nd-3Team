@@ -440,6 +440,7 @@ SKN28-2nd-3Team/
     │
     └── processed/                   # src 내부 임시 산출물 폴더
 ```
+[➡️ 전체 파일 설명](docs/project_structure.md)
 
 ---
 
