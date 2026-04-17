@@ -473,11 +473,10 @@ SKN28-2nd-3Team/
 ---
 ## 참고자료
 
-[Project Structure](docs/product_structure.md)
-[Data Dictionary](data_dictionary.md)
-[Execution Guide](docs/execution_guide.md)
-[modeling_strategy](docs/modeling_strategy.md)
-[project_description](docs/project_description.md)
-[raw_data_check_summary](docs/raw_data_check_summary.csv)
-[streamlit_guide](docs/streamlit_guide.md)
----
+* [Project Structure](docs/product_structure.md)
+* [Data Dictionary](data_dictionary.md)
+* [Execution Guide](docs/execution_guide.md)
+* [modeling_strategy](docs/modeling_strategy.md)
+* [project_description](docs/project_description.md)
+* [raw_data_check_summary](docs/raw_data_check_summary.csv)
+* [streamlit_guide](docs/streamlit_guide.md)
