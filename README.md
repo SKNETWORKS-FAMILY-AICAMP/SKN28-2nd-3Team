@@ -471,5 +471,13 @@ SKN28-2nd-3Team/
 또한 데이터 규모가 크지 않은 환경에서 무조건 복잡한 모델을 선택하기보다, 머신러닝과 딥러닝을 비교하고 각 모델의 역할을 분리하여 **성능, 해석 가능성, 운영 적용성**을 함께 고려한 분석 구조를 설계했다는 점에서도 의의가 있다.
 
 ---
-- [Project Structure](docs/product_structure.md)
+## 참고자료
+
+[Project Structure](docs/product_structure.md)
+[Data Dictionary](data_dictionary.md)
+[Execution Guide](docs/execution_guide.md)
+[modeling_strategy](docs/modeling_strategy.md)
+[project_description](docs/project_description.md)
+[raw_data_check_summary](docs/raw_data_check_summary.csv)
+[streamlit_guide](docs/streamlit_guide.md)
 ---
