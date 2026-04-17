@@ -31,7 +31,7 @@
 - 운영 최적 threshold: 0.45
 - 최고 F1: 0.433
 - 배포: [🔗 Streamlit 대시보드](https://skn28-2nd-3teamgit.streamlit.app)
-- 시연영상 : [🔗 YouTube에서 시연 영상 보기](https://youtu.be/iWxo6F7C1G8)
+- 시연영상 : [🔗 YouTube에서 시연 영상 보기](https://youtu.be/dhOW5fmQaIY)
 ---
 
 ## 프로젝트가 해결하려는 문제
