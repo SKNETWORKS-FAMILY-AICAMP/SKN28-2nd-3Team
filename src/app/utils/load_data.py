@@ -1,4 +1,5 @@
 # load_data.py
+# load_data.py
 
 from __future__ import annotations  # 타입 힌트에서 forward reference 사용 가능하게 설정
 
@@ -283,3 +284,120 @@ def predict_dl_row(row: pd.DataFrame) -> float | None:
         return float(pred_proba)
     except Exception:
         return None
+
+
+# -----------------------------------
+# 고객별 예측 비교 테이블 생성
+# -----------------------------------
+@st.cache_data(show_spinner=False)
+def build_prediction_comparison() -> pd.DataFrame:
+    # 테스트용 입력 데이터와 실제 정답 데이터 로드
+    X_test = load_x_test()
+    y_test = load_y_test()
+
+    # 테스트 데이터가 없으면 빈 데이터프레임 반환
+    if X_test.empty:
+        return pd.DataFrame()
+
+    # 결과 저장용 데이터프레임 생성
+    result = pd.DataFrame()
+
+    # account_id가 있으면 고객 식별용으로 유지
+    if "account_id" in X_test.columns:
+        result["account_id"] = X_test["account_id"].values
+
+    # -----------------------------------
+    # Logistic Regression(또는 best_model) 예측 확률
+    # -----------------------------------
+    ml_model = load_ml_model()
+    if ml_model is not None:
+        try:
+            X_ml = _prepare_numeric_features(X_test)
+            result["ml_logistic_proba"] = ml_model.predict_proba(X_ml)[:, 1]
+        except Exception:
+            result["ml_logistic_proba"] = pd.NA
+    else:
+        result["ml_logistic_proba"] = pd.NA
+
+    # -----------------------------------
+    # Random Forest 예측 확률
+    # -----------------------------------
+    rf_model = load_random_forest_model()
+    if rf_model is not None:
+        try:
+            X_rf = _prepare_numeric_features(X_test)
+            result["ml_random_forest_proba"] = rf_model.predict_proba(X_rf)[:, 1]
+        except Exception:
+            result["ml_random_forest_proba"] = pd.NA
+    else:
+        result["ml_random_forest_proba"] = pd.NA
+
+    # -----------------------------------
+    # DL MLP 예측 확률
+    # -----------------------------------
+    dl_model = load_dl_model()
+    dl_scaler = _load_dl_scaler()
+    dl_feature_names = _load_dl_feature_columns()
+
+    if dl_model is not None and dl_scaler is not None and dl_feature_names:
+        try:
+            X_dl = _prepare_numeric_features(X_test)
+
+            # 학습 당시 사용한 feature가 모두 있어야 예측 가능
+            missing_cols = [c for c in dl_feature_names if c not in X_dl.columns]
+
+            if not missing_cols:
+                X_dl = X_dl[dl_feature_names]
+                X_scaled = dl_scaler.transform(X_dl)
+                X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
+
+                with torch.no_grad():
+                    dl_pred = dl_model(X_tensor).squeeze().numpy()
+
+                result["dl_mlp_proba"] = dl_pred
+            else:
+                result["dl_mlp_proba"] = pd.NA
+        except Exception:
+            result["dl_mlp_proba"] = pd.NA
+    else:
+        result["dl_mlp_proba"] = pd.NA
+
+    # -----------------------------------
+    # 실제 정답(churn_flag) 결합
+    # -----------------------------------
+    if not y_test.empty:
+        try:
+            if "churn_flag" in y_test.columns:
+                result["actual_churn_flag"] = y_test["churn_flag"].values
+            else:
+                result["actual_churn_flag"] = y_test.iloc[:, 0].values
+        except Exception:
+            result["actual_churn_flag"] = pd.NA
+
+    return result
+
+
+# -----------------------------------
+# 모델별 tuned threshold 매핑
+# -----------------------------------
+def get_tuned_threshold_map() -> dict[str, float]:
+    tuned_df = load_model_comparison_tuned()
+
+    # 데이터가 없으면 빈 dict 반환
+    if tuned_df.empty:
+        return {}
+
+    # 필요한 컬럼이 없으면 빈 dict 반환
+    required_cols = {"model", "threshold"}
+    if not required_cols.issubset(set(tuned_df.columns)):
+        return {}
+
+    # model명 → threshold 값 매핑
+    mapping: dict[str, float] = {}
+    for _, row in tuned_df.iterrows():
+        try:
+            mapping[str(row["model"])] = float(row["threshold"])
+        except Exception:
+            continue
+
+    return mapping
