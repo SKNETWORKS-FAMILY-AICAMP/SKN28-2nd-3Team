@@ -476,8 +476,8 @@ SKN28-2nd-3Team/
 
 * [Data Dictionary](docs/data_dictionary.md)
 * [Modeling Strategy](docs/modeling_strategy.md)
-* [Project_Description](docs/project_description.md)
-* [Streamlit_Guide](docs/streamlit_guide.md)
+* [Project Description](docs/project_description.md)
+* [Streamlit Guide](docs/streamlit_guide.md)
 
 ---
 
