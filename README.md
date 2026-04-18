@@ -492,19 +492,19 @@ SKN28-2nd-3Team/
 실제 운영 환경에서는 recall, precision, F1 score, 그리고 오탐(False Positive) 비용 등을 함께 고려하여 decision boundary를 조정해야 한다.
 
 본 프로젝트에서는 validation 데이터에서 threshold를 탐색한 결과, **0.45 지점이 가장 균형 잡힌 F1 score와 운영 안정성을 보여주었기 때문에** 이를 최종 운영 기준 threshold로 설정하였다.
-
-
+<br>
+<br>
 ### Q2. 왜 DL_MLP를 최종 예측 모델로 선택했는가?
 
-DL_MLP(딥러닝 모델)는 feature 간의 **비선형 상호작용(non-linear interaction)**을 더 효과적으로 학습할 수 있다는 장점이 있다.
+DL_MLP(딥러닝 모델)는 feature 간의 **비선형 상호작용(non-linear interaction)** 을 더 효과적으로 학습할 수 있다는 장점이 있다.
 
 특히 threshold 조정 이후,
 - 위험 고객을 더 잘 선별할 수 있었고
 - F1 기준 성능이 가장 우수하게 나타났다.
 
 따라서 본 프로젝트에서는 **성능 중심의 최종 예측 모델로 DL_MLP를 채택하였다.**
-
-
+<br>
+<br>
 ### Q3. 왜 Logistic Regression도 함께 강조했는가?
 
 본 프로젝트의 목적은 단순히 "가장 성능이 높은 모델"을 찾는 것이 아니었다.
@@ -518,21 +518,16 @@ Logistic Regression은
 - Logistic Regression → 해석 가능한 기준선
 
 이라는 역할 분리를 통해 **설명 가능성과 실무 적용 가능성을 함께 확보하였다.**
-
-
+<br>
+<br>
 ### Q4. 이 프로젝트의 차별점은 무엇인가?
 
 본 프로젝트의 핵심 차별점은 다음과 같다.
 
-- 단순 churn 예측이 아닌  
-  **Prediction → Explanation → Action으로 이어지는 end-to-end 구조 설계**
-- SHAP 기반 XAI를 활용하여  
-  **모델 결과를 설명 가능한 형태로 변환**
-- account 단위 feature 통합을 통해  
-  **실제 의사결정 단위에 맞춘 데이터 구조 설계**
-- churn 이후 정보 제거를 통한  
-  **leakage control 명확화**
-- threshold 0.5 고정이 아닌  
-  **운영 기준 기반 decision rule 재설정**
+- 단순 churn 예측이 아닌 **Prediction → Explanation → Action으로 이어지는 end-to-end 구조 설계**
+- SHAP 기반 XAI를 활용하여 **모델 결과를 설명 가능한 형태로 변환**
+- account 단위 feature 통합을 통해 **실제 의사결정 단위에 맞춘 데이터 구조 설계**
+- churn 이후 정보 제거를 통한 **leakage control 명확화**
+- threshold 0.5 고정이 아닌 **운영 기준 기반 decision rule 재설정**
 
 즉, 본 프로젝트는 단순 모델링이 아니라 **실제 서비스 운영에 적용 가능한 churn analytics framework를 구현했다는 점에서 의미가 있다.**
