@@ -40,7 +40,7 @@
 - 최고 F1: 0.433
 - 배포: [🔗 Streamlit 대시보드](https://skn28-2nd-3teamgit.streamlit.app)
 - 시연영상 : [🔗 YouTube에서 시연 영상 보기](https://youtu.be/dhOW5fmQaIY)
-- 발표자료 : [📑 발표자료 보기](docs/2nd_3team_presentation.pdf) (발표 후 업로드 예정)
+- 발표자료 : [📑 발표자료 보기](https://drive.google.com/file/d/1iwAr-PEeGSzQnHcL6yB18zr1YAnVuSmz/view?usp=sharing)
 
 ---
 
