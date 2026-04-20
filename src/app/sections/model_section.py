@@ -33,7 +33,7 @@ def _center_note(text: str) -> None:
             margin-top: 0.35rem;             /* 위쪽 여백 */
             margin-bottom: 1.1rem;           /* 아래쪽 여백 */
         ">
-            {text}                           /* 전달받은 설명 텍스트 삽입 */
+            {text}                           
         </div>
         """,
         unsafe_allow_html=True,  # HTML 스타일 적용 허용
